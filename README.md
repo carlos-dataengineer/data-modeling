@@ -12,6 +12,18 @@ A ferramenta pode ajudar quem está aprendendo modelagem de dados, quem trabalha
 
 ---
 
+## Instalar e chamar a Skill
+
+A pasta `skill/data-modeling/` contém a Skill pronta para ser adicionada ao diretório de Skills do agente compatível. No Claude Code, depois de instalar a pasta com o nome `data-modeling` e abrir uma nova sessão, chame `/data-modeling`. Em ambientes Codex que reconhecem Agent Skills, selecione `data-modeling` no menu de Skills ou invoque `$data-modeling`.
+
+Para gerar o aplicativo incluído na Skill, execute o instalador a partir da raiz do repositório:
+
+```bash
+python skill/data-modeling/Scripts/install.py --target ./data-modeling
+```
+
+O comando cria `index.html`, `sample-project.json` e `README.md` dentro da pasta de destino. Depois, abra `index.html` em um navegador moderno. A instalação da Skill no agente e a geração do aplicativo são etapas diferentes; não considere o aplicativo instalado até confirmar os três arquivos.
+
 ## 1. Entenda a ideia
 
 Pense no Data Modeling como um quadro branco feito para organizar modelos de dados.
