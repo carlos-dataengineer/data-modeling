@@ -1,0 +1,142 @@
+{
+  "format": "schema-board",
+  "version": 1,
+  "board": {
+    "name": "Exemplo fictício — Loja Aurora",
+    "catalog": "demo_catalog"
+  },
+  "tables": [
+    {
+      "id": "t_customers",
+      "name": "customers_demo",
+      "layer": "bronze",
+      "schema": "raw",
+      "catalog": "demo_catalog",
+      "desc": "Clientes fictícios; uma linha por cliente.",
+      "x": 120,
+      "y": 120,
+      "w": 400,
+      "columns": [
+        {
+          "id": "c_customer_id",
+          "name": "customer_id",
+          "type": "bigint",
+          "pk": true,
+          "fk": false,
+          "nn": true,
+          "desc": "Identificador fictício do cliente"
+        },
+        {
+          "id": "c_customer_name",
+          "name": "customer_name",
+          "type": "string",
+          "pk": false,
+          "fk": false,
+          "nn": true,
+          "desc": "Nome inteiramente fictício"
+        },
+        {
+          "id": "c_city",
+          "name": "city",
+          "type": "string",
+          "pk": false,
+          "fk": false,
+          "nn": false,
+          "desc": "Cidade fictícia"
+        }
+      ]
+    },
+    {
+      "id": "t_orders",
+      "name": "orders_demo",
+      "layer": "silver",
+      "schema": "curated",
+      "catalog": "demo_catalog",
+      "desc": "Pedidos fictícios; uma linha por pedido.",
+      "x": 620,
+      "y": 120,
+      "w": 400,
+      "columns": [
+        {
+          "id": "c_order_id",
+          "name": "order_id",
+          "type": "bigint",
+          "pk": true,
+          "fk": false,
+          "nn": true,
+          "desc": "Identificador fictício do pedido"
+        },
+        {
+          "id": "c_order_customer_id",
+          "name": "customer_id",
+          "type": "bigint",
+          "pk": false,
+          "fk": true,
+          "nn": true,
+          "desc": "Referência a customers_demo"
+        },
+        {
+          "id": "c_order_total",
+          "name": "order_total",
+          "type": "decimal(12,2)",
+          "pk": false,
+          "fk": false,
+          "nn": true,
+          "desc": "Valor ilustrativo em moeda fictícia"
+        }
+      ]
+    },
+    {
+      "id": "t_products",
+      "name": "products_demo",
+      "layer": "bronze",
+      "schema": "raw",
+      "catalog": "demo_catalog",
+      "desc": "Catálogo fictício; uma linha por produto.",
+      "x": 120,
+      "y": 470,
+      "w": 400,
+      "columns": [
+        {
+          "id": "c_product_id",
+          "name": "product_id",
+          "type": "bigint",
+          "pk": true,
+          "fk": false,
+          "nn": true,
+          "desc": "Identificador fictício do produto"
+        },
+        {
+          "id": "c_product_name",
+          "name": "product_name",
+          "type": "string",
+          "pk": false,
+          "fk": false,
+          "nn": true,
+          "desc": "Nome fictício do produto"
+        }
+      ]
+    }
+  ],
+  "rels": [
+    {
+      "id": "r_customer_orders",
+      "from": {
+        "t": "t_customers",
+        "c": "c_customer_id"
+      },
+      "to": {
+        "t": "t_orders",
+        "c": "c_order_customer_id"
+      },
+      "fromCard": "1",
+      "toCard": "0..N",
+      "label": "cliente realiza pedidos"
+    }
+  ],
+  "notes": [],
+  "frames": [],
+  "texts": [],
+  "shapes": [],
+  "links": []
+}
