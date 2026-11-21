@@ -18,6 +18,10 @@ O Data Modeling é um quadro visual para desenhar estruturas de dados. Ele ajuda
 
 O aplicativo incluído em `Assets/index.html` é a aplicação visual do Data Modeling. Preserve o comportamento real do arquivo. Não substitua a ferramenta por uma versão simplificada sem autorização.
 
+## Como chamar a Skill
+
+Depois de copiar a pasta `data-modeling` para o diretório de Skills do agente, abra uma nova sessão. No Claude Code, use `/data-modeling`. No Codex, selecione a Skill pelo menu `/skills` ou invoque `$data-modeling`, conforme a versão do host.
+
 ## Como instalar
 
 Execute o instalador:
