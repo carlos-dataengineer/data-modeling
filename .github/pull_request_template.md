@@ -1,15 +1,17 @@
-## Resumo
+## O que muda
 
-## Motivação
+<!-- Descreva a mudança e o motivo. Se fecha uma issue, escreva "Fecha #número". -->
 
-## Mudanças realizadas
+## Como testei
 
-## Como foi testado
-- [ ] `python tests/check_project.py`
-- [ ] `python -m unittest discover -s tests -v`
-- [ ] Aplicação aberta e fluxo principal verificado no navegador
+<!-- Passos que você seguiu. Inclua capturas de tela quando a mudança for visual. -->
 
-## Segurança e dados
-- [ ] Usei somente dados fictícios nos exemplos e screenshots.
-- [ ] Não incluí segredos, tokens ou dados pessoais.
-- [ ] Atualizei a documentação quando necessário.
+## Checklist
+
+- [ ] Editei `src/data-modeling.html` ou `examples/loja-aurora.json` (não os arquivos gerados) e rodei `python scripts/build.py`
+- [ ] `python tests/validate_repo.py` passa
+- [ ] `python tests/test_smoke.py` passa
+- [ ] Testei no tema claro e no escuro
+- [ ] Usei só dados fictícios em exemplos e capturas
+- [ ] Registrei a mudança em `CHANGELOG.md`
+- [ ] Atualizei o README e as imagens (`python scripts/screenshots.py`), se a interface mudou

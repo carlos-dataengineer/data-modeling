@@ -12,7 +12,7 @@ O Data Modeling trabalha principalmente com a estrutura dos dados que a pessoa d
 
 ## Modo local
 
-Quando o HTML é aberto diretamente no navegador, sem o ambiente hospedeiro compatível, o quadro funciona localmente e não tem armazenamento compartilhado nem salvamento automático garantido. Exporte o JSON para guardar uma cópia e proteja esse arquivo como qualquer documento que descreve uma arquitetura.
+Quando o HTML é aberto diretamente no navegador, o quadro funciona localmente e salva o board no `localStorage` daquele navegador. Nada é enviado para servidores; as únicas requisições externas são as fontes do Google Fonts. Qualquer pessoa com acesso ao mesmo perfil do navegador consegue abrir o board. Exporte o JSON para guardar uma cópia e proteja esse arquivo como qualquer documento que descreve uma arquitetura.
 
 ## Modo integrado
 

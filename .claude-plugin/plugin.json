@@ -1,0 +1,10 @@
+{
+  "name": "data-modeling",
+  "version": "2.0.0",
+  "description": "Quadro visual de modelagem de dados (tabelas, PK/FK, relacionamentos, camadas medalhão) com exportação para SQL DDL Databricks, PySpark, Mermaid e JSON, entregue como artefato no Claude.",
+  "author": { "name": "Krlos Robertt", "url": "https://github.com/carlos-dataengineer" },
+  "homepage": "https://github.com/carlos-dataengineer/data-modeling",
+  "repository": "https://github.com/carlos-dataengineer/data-modeling",
+  "license": "Apache-2.0",
+  "keywords": ["data-modeling", "modelagem", "diagrama-er", "databricks", "pyspark", "mermaid", "artefato", "skill"]
+}

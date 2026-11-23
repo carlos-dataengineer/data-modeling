@@ -1,0 +1,957 @@
+{
+  "format": "schema-board",
+  "version": 1,
+  "board": {
+    "name": "Loja Aurora · vendas (exemplo)",
+    "catalog": "aurora_dev"
+  },
+  "tables": [
+    {
+      "id": "t_raw_pedidos",
+      "name": "raw_pedidos",
+      "layer": "bronze",
+      "schema": "bronze",
+      "catalog": "aurora_dev",
+      "desc": "Pedidos como chegam do ERP fictício. Uma linha por evento de pedido.",
+      "x": 0,
+      "y": 20,
+      "w": 340,
+      "columns": [
+        {
+          "id": "c_payload_id",
+          "name": "payload_id",
+          "type": "string",
+          "pk": true,
+          "fk": false,
+          "nn": true,
+          "desc": "Identificador do evento recebido"
+        },
+        {
+          "id": "c_pedido_cod",
+          "name": "pedido_cod",
+          "type": "string",
+          "pk": false,
+          "fk": false,
+          "nn": false,
+          "desc": "Código do pedido no ERP"
+        },
+        {
+          "id": "c_cliente_cod",
+          "name": "cliente_cod",
+          "type": "string",
+          "pk": false,
+          "fk": false,
+          "nn": false,
+          "desc": "Código do cliente no ERP"
+        },
+        {
+          "id": "c_valor_txt",
+          "name": "valor_txt",
+          "type": "string",
+          "pk": false,
+          "fk": false,
+          "nn": false,
+          "desc": "Valor total em texto, sem tratamento"
+        },
+        {
+          "id": "c_dt_evento",
+          "name": "dt_evento",
+          "type": "string",
+          "pk": false,
+          "fk": false,
+          "nn": false,
+          "desc": "Data do evento em texto"
+        },
+        {
+          "id": "c__ingestao_ts",
+          "name": "_ingestao_ts",
+          "type": "timestamp",
+          "pk": false,
+          "fk": false,
+          "nn": true,
+          "desc": "Quando a linha entrou no lake"
+        }
+      ]
+    },
+    {
+      "id": "t_raw_clientes",
+      "name": "raw_clientes",
+      "layer": "bronze",
+      "schema": "bronze",
+      "catalog": "aurora_dev",
+      "desc": "Cadastro de clientes extraído do CRM fictício.",
+      "x": 0,
+      "y": 270,
+      "w": 340,
+      "columns": [
+        {
+          "id": "c_cliente_cod",
+          "name": "cliente_cod",
+          "type": "string",
+          "pk": true,
+          "fk": false,
+          "nn": true,
+          "desc": "Código do cliente no CRM"
+        },
+        {
+          "id": "c_nome",
+          "name": "nome",
+          "type": "string",
+          "pk": false,
+          "fk": false,
+          "nn": false,
+          "desc": "Nome do cliente (fictício)"
+        },
+        {
+          "id": "c_email",
+          "name": "email",
+          "type": "string",
+          "pk": false,
+          "fk": false,
+          "nn": false,
+          "desc": "E-mail (dado pessoal: mascarar na silver)"
+        },
+        {
+          "id": "c_cidade_uf",
+          "name": "cidade_uf",
+          "type": "string",
+          "pk": false,
+          "fk": false,
+          "nn": false,
+          "desc": "Cidade e UF juntos, ex.: Recife-PE"
+        },
+        {
+          "id": "c__ingestao_ts",
+          "name": "_ingestao_ts",
+          "type": "timestamp",
+          "pk": false,
+          "fk": false,
+          "nn": true,
+          "desc": "Quando a linha entrou no lake"
+        }
+      ]
+    },
+    {
+      "id": "t_raw_produtos",
+      "name": "raw_produtos",
+      "layer": "bronze",
+      "schema": "bronze",
+      "catalog": "aurora_dev",
+      "desc": "Catálogo de produtos da loja fictícia.",
+      "x": 0,
+      "y": 490,
+      "w": 340,
+      "columns": [
+        {
+          "id": "c_sku",
+          "name": "sku",
+          "type": "string",
+          "pk": true,
+          "fk": false,
+          "nn": true,
+          "desc": "Código do produto"
+        },
+        {
+          "id": "c_descricao",
+          "name": "descricao",
+          "type": "string",
+          "pk": false,
+          "fk": false,
+          "nn": false,
+          "desc": "Nome do produto"
+        },
+        {
+          "id": "c_categoria",
+          "name": "categoria",
+          "type": "string",
+          "pk": false,
+          "fk": false,
+          "nn": false,
+          "desc": "Categoria comercial"
+        },
+        {
+          "id": "c_preco_txt",
+          "name": "preco_txt",
+          "type": "string",
+          "pk": false,
+          "fk": false,
+          "nn": false,
+          "desc": "Preço de tabela em texto"
+        },
+        {
+          "id": "c__ingestao_ts",
+          "name": "_ingestao_ts",
+          "type": "timestamp",
+          "pk": false,
+          "fk": false,
+          "nn": true,
+          "desc": "Quando a linha entrou no lake"
+        }
+      ]
+    },
+    {
+      "id": "t_cliente",
+      "name": "tb_cliente",
+      "layer": "silver",
+      "schema": "silver",
+      "catalog": "aurora_dev",
+      "desc": "Uma linha por cliente, deduplicado e com e-mail mascarado.",
+      "x": 470,
+      "y": 20,
+      "w": 340,
+      "columns": [
+        {
+          "id": "c_id_cliente",
+          "name": "id_cliente",
+          "type": "bigint",
+          "pk": true,
+          "fk": false,
+          "nn": true,
+          "desc": "Chave do cliente"
+        },
+        {
+          "id": "c_cliente_cod",
+          "name": "cliente_cod",
+          "type": "string",
+          "pk": false,
+          "fk": false,
+          "nn": true,
+          "desc": "Código de origem no CRM"
+        },
+        {
+          "id": "c_nome",
+          "name": "nome",
+          "type": "string",
+          "pk": false,
+          "fk": false,
+          "nn": false,
+          "desc": "Nome do cliente"
+        },
+        {
+          "id": "c_email_hash",
+          "name": "email_hash",
+          "type": "string",
+          "pk": false,
+          "fk": false,
+          "nn": false,
+          "desc": "Hash do e-mail (LGPD)"
+        },
+        {
+          "id": "c_cidade",
+          "name": "cidade",
+          "type": "string",
+          "pk": false,
+          "fk": false,
+          "nn": false,
+          "desc": "Cidade"
+        },
+        {
+          "id": "c_uf",
+          "name": "uf",
+          "type": "string",
+          "pk": false,
+          "fk": false,
+          "nn": false,
+          "desc": "Unidade federativa"
+        }
+      ]
+    },
+    {
+      "id": "t_pedido",
+      "name": "tb_pedido",
+      "layer": "silver",
+      "schema": "silver",
+      "catalog": "aurora_dev",
+      "desc": "Uma linha por pedido válido.",
+      "x": 470,
+      "y": 300,
+      "w": 340,
+      "columns": [
+        {
+          "id": "c_id_pedido",
+          "name": "id_pedido",
+          "type": "bigint",
+          "pk": true,
+          "fk": false,
+          "nn": true,
+          "desc": "Chave do pedido"
+        },
+        {
+          "id": "c_id_cliente",
+          "name": "id_cliente",
+          "type": "bigint",
+          "pk": false,
+          "fk": true,
+          "nn": true,
+          "desc": "Cliente que fez o pedido"
+        },
+        {
+          "id": "c_dt_pedido",
+          "name": "dt_pedido",
+          "type": "date",
+          "pk": false,
+          "fk": false,
+          "nn": true,
+          "desc": "Data do pedido"
+        },
+        {
+          "id": "c_status",
+          "name": "status",
+          "type": "string",
+          "pk": false,
+          "fk": false,
+          "nn": false,
+          "desc": "aberto, pago, enviado, cancelado"
+        },
+        {
+          "id": "c_vl_total",
+          "name": "vl_total",
+          "type": "decimal(12,2)",
+          "pk": false,
+          "fk": false,
+          "nn": false,
+          "desc": "Valor total do pedido"
+        }
+      ]
+    },
+    {
+      "id": "t_produto",
+      "name": "tb_produto",
+      "layer": "silver",
+      "schema": "silver",
+      "catalog": "aurora_dev",
+      "desc": "Uma linha por produto ativo.",
+      "x": 850,
+      "y": 20,
+      "w": 340,
+      "columns": [
+        {
+          "id": "c_id_produto",
+          "name": "id_produto",
+          "type": "bigint",
+          "pk": true,
+          "fk": false,
+          "nn": true,
+          "desc": "Chave do produto"
+        },
+        {
+          "id": "c_sku",
+          "name": "sku",
+          "type": "string",
+          "pk": false,
+          "fk": false,
+          "nn": true,
+          "desc": "Código de origem"
+        },
+        {
+          "id": "c_nome",
+          "name": "nome",
+          "type": "string",
+          "pk": false,
+          "fk": false,
+          "nn": false,
+          "desc": "Nome do produto"
+        },
+        {
+          "id": "c_categoria",
+          "name": "categoria",
+          "type": "string",
+          "pk": false,
+          "fk": false,
+          "nn": false,
+          "desc": "Categoria comercial"
+        },
+        {
+          "id": "c_vl_preco",
+          "name": "vl_preco",
+          "type": "decimal(12,2)",
+          "pk": false,
+          "fk": false,
+          "nn": false,
+          "desc": "Preço de tabela"
+        }
+      ]
+    },
+    {
+      "id": "t_item",
+      "name": "tb_item_pedido",
+      "layer": "silver",
+      "schema": "silver",
+      "catalog": "aurora_dev",
+      "desc": "Uma linha por item dentro de um pedido.",
+      "x": 850,
+      "y": 300,
+      "w": 340,
+      "columns": [
+        {
+          "id": "c_id_item",
+          "name": "id_item",
+          "type": "bigint",
+          "pk": true,
+          "fk": false,
+          "nn": true,
+          "desc": "Chave do item"
+        },
+        {
+          "id": "c_id_pedido",
+          "name": "id_pedido",
+          "type": "bigint",
+          "pk": false,
+          "fk": true,
+          "nn": true,
+          "desc": "Pedido do item"
+        },
+        {
+          "id": "c_id_produto",
+          "name": "id_produto",
+          "type": "bigint",
+          "pk": false,
+          "fk": true,
+          "nn": true,
+          "desc": "Produto vendido"
+        },
+        {
+          "id": "c_qtd",
+          "name": "qtd",
+          "type": "int",
+          "pk": false,
+          "fk": false,
+          "nn": false,
+          "desc": "Quantidade"
+        },
+        {
+          "id": "c_vl_unitario",
+          "name": "vl_unitario",
+          "type": "decimal(12,2)",
+          "pk": false,
+          "fk": false,
+          "nn": false,
+          "desc": "Preço praticado no item"
+        }
+      ]
+    },
+    {
+      "id": "t_dim_cliente",
+      "name": "dim_cliente",
+      "layer": "dim",
+      "schema": "gold",
+      "catalog": "aurora_dev",
+      "desc": "Dimensão de clientes para análise (SCD tipo 1).",
+      "x": 1330,
+      "y": 20,
+      "w": 340,
+      "columns": [
+        {
+          "id": "c_sk_cliente",
+          "name": "sk_cliente",
+          "type": "bigint",
+          "pk": true,
+          "fk": false,
+          "nn": true,
+          "desc": "Chave substituta"
+        },
+        {
+          "id": "c_id_cliente",
+          "name": "id_cliente",
+          "type": "bigint",
+          "pk": false,
+          "fk": false,
+          "nn": false,
+          "desc": "Chave de negócio"
+        },
+        {
+          "id": "c_cidade",
+          "name": "cidade",
+          "type": "string",
+          "pk": false,
+          "fk": false,
+          "nn": false,
+          "desc": "Cidade"
+        },
+        {
+          "id": "c_uf",
+          "name": "uf",
+          "type": "string",
+          "pk": false,
+          "fk": false,
+          "nn": false,
+          "desc": "UF"
+        },
+        {
+          "id": "c_faixa_cliente",
+          "name": "faixa_cliente",
+          "type": "string",
+          "pk": false,
+          "fk": false,
+          "nn": false,
+          "desc": "novo, recorrente, fiel (regra em validação)",
+          "st": "val"
+        }
+      ]
+    },
+    {
+      "id": "t_dim_produto",
+      "name": "dim_produto",
+      "layer": "dim",
+      "schema": "gold",
+      "catalog": "aurora_dev",
+      "desc": "Dimensão de produtos.",
+      "x": 1330,
+      "y": 270,
+      "w": 340,
+      "columns": [
+        {
+          "id": "c_sk_produto",
+          "name": "sk_produto",
+          "type": "bigint",
+          "pk": true,
+          "fk": false,
+          "nn": true,
+          "desc": "Chave substituta"
+        },
+        {
+          "id": "c_id_produto",
+          "name": "id_produto",
+          "type": "bigint",
+          "pk": false,
+          "fk": false,
+          "nn": false,
+          "desc": "Chave de negócio"
+        },
+        {
+          "id": "c_nome",
+          "name": "nome",
+          "type": "string",
+          "pk": false,
+          "fk": false,
+          "nn": false,
+          "desc": "Nome do produto"
+        },
+        {
+          "id": "c_categoria",
+          "name": "categoria",
+          "type": "string",
+          "pk": false,
+          "fk": false,
+          "nn": false,
+          "desc": "Categoria comercial"
+        }
+      ]
+    },
+    {
+      "id": "t_dim_data",
+      "name": "dim_data",
+      "layer": "dim",
+      "schema": "gold",
+      "catalog": "aurora_dev",
+      "desc": "Calendário: uma linha por dia.",
+      "x": 1330,
+      "y": 490,
+      "w": 340,
+      "columns": [
+        {
+          "id": "c_sk_data",
+          "name": "sk_data",
+          "type": "int",
+          "pk": true,
+          "fk": false,
+          "nn": true,
+          "desc": "Data no formato AAAAMMDD"
+        },
+        {
+          "id": "c_data",
+          "name": "data",
+          "type": "date",
+          "pk": false,
+          "fk": false,
+          "nn": false,
+          "desc": "Data"
+        },
+        {
+          "id": "c_mes",
+          "name": "mes",
+          "type": "int",
+          "pk": false,
+          "fk": false,
+          "nn": false,
+          "desc": "Mês"
+        },
+        {
+          "id": "c_ano",
+          "name": "ano",
+          "type": "int",
+          "pk": false,
+          "fk": false,
+          "nn": false,
+          "desc": "Ano"
+        },
+        {
+          "id": "c_dia_util",
+          "name": "dia_util",
+          "type": "boolean",
+          "pk": false,
+          "fk": false,
+          "nn": false,
+          "desc": "É dia útil?"
+        }
+      ]
+    },
+    {
+      "id": "t_fato",
+      "name": "fato_vendas",
+      "layer": "fact",
+      "schema": "gold",
+      "catalog": "aurora_dev",
+      "desc": "Uma linha por item vendido. Base dos painéis de vendas.",
+      "x": 1730,
+      "y": 230,
+      "w": 340,
+      "columns": [
+        {
+          "id": "c_id_item",
+          "name": "id_item",
+          "type": "bigint",
+          "pk": true,
+          "fk": false,
+          "nn": true,
+          "desc": "Item de pedido de origem"
+        },
+        {
+          "id": "c_sk_cliente",
+          "name": "sk_cliente",
+          "type": "bigint",
+          "pk": false,
+          "fk": true,
+          "nn": true,
+          "desc": "Cliente"
+        },
+        {
+          "id": "c_sk_produto",
+          "name": "sk_produto",
+          "type": "bigint",
+          "pk": false,
+          "fk": true,
+          "nn": true,
+          "desc": "Produto"
+        },
+        {
+          "id": "c_sk_data",
+          "name": "sk_data",
+          "type": "int",
+          "pk": false,
+          "fk": true,
+          "nn": true,
+          "desc": "Dia da venda"
+        },
+        {
+          "id": "c_qtd",
+          "name": "qtd",
+          "type": "int",
+          "pk": false,
+          "fk": false,
+          "nn": false,
+          "desc": "Quantidade vendida"
+        },
+        {
+          "id": "c_vl_receita",
+          "name": "vl_receita",
+          "type": "decimal(14,2)",
+          "pk": false,
+          "fk": false,
+          "nn": false,
+          "desc": "qtd x valor unitário"
+        },
+        {
+          "id": "c_vl_desconto",
+          "name": "vl_desconto",
+          "type": "decimal(14,2)",
+          "pk": false,
+          "fk": false,
+          "nn": false,
+          "desc": "Desconto aplicado (ainda sem fonte)",
+          "st": "nosrc"
+        }
+      ]
+    }
+  ],
+  "rels": [
+    {
+      "id": "r_ped_cli",
+      "from": {
+        "t": "t_cliente",
+        "c": "c_id_cliente"
+      },
+      "to": {
+        "t": "t_pedido",
+        "c": "c_id_cliente"
+      },
+      "fromCard": "1",
+      "toCard": "0..N",
+      "label": "faz"
+    },
+    {
+      "id": "r_item_ped",
+      "from": {
+        "t": "t_pedido",
+        "c": "c_id_pedido"
+      },
+      "to": {
+        "t": "t_item",
+        "c": "c_id_pedido"
+      },
+      "fromCard": "1",
+      "toCard": "1..N",
+      "label": "contém"
+    },
+    {
+      "id": "r_item_prod",
+      "from": {
+        "t": "t_produto",
+        "c": "c_id_produto"
+      },
+      "to": {
+        "t": "t_item",
+        "c": "c_id_produto"
+      },
+      "fromCard": "1",
+      "toCard": "0..N",
+      "label": "vendido em"
+    },
+    {
+      "id": "r_f_cli",
+      "from": {
+        "t": "t_dim_cliente",
+        "c": "c_sk_cliente"
+      },
+      "to": {
+        "t": "t_fato",
+        "c": "c_sk_cliente"
+      },
+      "fromCard": "1",
+      "toCard": "0..N",
+      "label": "sk_cliente"
+    },
+    {
+      "id": "r_f_prod",
+      "from": {
+        "t": "t_dim_produto",
+        "c": "c_sk_produto"
+      },
+      "to": {
+        "t": "t_fato",
+        "c": "c_sk_produto"
+      },
+      "fromCard": "1",
+      "toCard": "0..N",
+      "label": "sk_produto"
+    },
+    {
+      "id": "r_f_data",
+      "from": {
+        "t": "t_dim_data",
+        "c": "c_sk_data"
+      },
+      "to": {
+        "t": "t_fato",
+        "c": "c_sk_data"
+      },
+      "fromCard": "1",
+      "toCard": "0..N",
+      "label": "sk_data"
+    }
+  ],
+  "notes": [
+    {
+      "id": "n_grao",
+      "x": 1730,
+      "y": 520,
+      "w": 280,
+      "text": "Grão da fato_vendas: uma linha por item de pedido.\nPedidos cancelados ficam fora.",
+      "color": "y"
+    },
+    {
+      "id": "n_pend",
+      "x": 470,
+      "y": 560,
+      "w": 300,
+      "text": "Pendência: confirmar com o time de vendas se pedidos 'enviado' sem pagamento entram na silver.",
+      "color": "o"
+    },
+    {
+      "id": "n_lgpd",
+      "x": 0,
+      "y": 700,
+      "w": 330,
+      "text": "LGPD: o e-mail só existe na bronze. Na silver ele vira hash.",
+      "color": "p"
+    }
+  ],
+  "frames": [
+    {
+      "id": "f_bronze",
+      "x": -30,
+      "y": -70,
+      "w": 400,
+      "h": 920,
+      "title": "Bronze · dado bruto",
+      "color": "#A8652E"
+    },
+    {
+      "id": "f_silver",
+      "x": 440,
+      "y": -70,
+      "w": 800,
+      "h": 920,
+      "title": "Silver · limpo e tipado",
+      "color": "#7F8C9C"
+    },
+    {
+      "id": "f_gold",
+      "x": 1300,
+      "y": -70,
+      "w": 820,
+      "h": 920,
+      "title": "Gold · modelo dimensional",
+      "color": "#B98F12"
+    }
+  ],
+  "texts": [
+    {
+      "id": "x_titulo",
+      "x": -30,
+      "y": -600,
+      "text": "Loja Aurora · modelo de vendas",
+      "size": 48,
+      "bold": true,
+      "color": "ink"
+    },
+    {
+      "id": "x_sub",
+      "x": -30,
+      "y": -530,
+      "text": "Exemplo fictício para aprender e testar o Data Modeling. Apague à vontade.",
+      "size": 20,
+      "bold": false,
+      "color": "muted"
+    }
+  ],
+  "shapes": [
+    {
+      "id": "s_erp",
+      "type": "cylinder",
+      "x": 0,
+      "y": -430,
+      "w": 180,
+      "h": 120,
+      "text": "ERP e CRM\n(fictícios)",
+      "color": "accent",
+      "fs": 16
+    },
+    {
+      "id": "s_ing",
+      "type": "pill",
+      "x": 300,
+      "y": -410,
+      "w": 220,
+      "h": 80,
+      "text": "Ingestão diária · 06h",
+      "color": "accent",
+      "fs": 16
+    },
+    {
+      "id": "s_dq",
+      "type": "diamond",
+      "x": 640,
+      "y": -435,
+      "w": 180,
+      "h": 130,
+      "text": "Testes de\nqualidade ok?",
+      "color": "warn",
+      "fs": 15
+    },
+    {
+      "id": "s_pub",
+      "type": "pill",
+      "x": 940,
+      "y": -410,
+      "w": 220,
+      "h": 80,
+      "text": "Publica a gold",
+      "color": "ok",
+      "fs": 16
+    },
+    {
+      "id": "s_bi",
+      "type": "rect",
+      "x": 1280,
+      "y": -425,
+      "w": 220,
+      "h": 110,
+      "text": "Painéis de vendas",
+      "color": "ok",
+      "fs": 16
+    }
+  ],
+  "links": [
+    {
+      "id": "l1",
+      "from": {
+        "kind": "shape",
+        "id": "s_erp"
+      },
+      "to": {
+        "kind": "shape",
+        "id": "s_ing"
+      },
+      "style": "solid",
+      "arrow": "end",
+      "color": "edge",
+      "label": ""
+    },
+    {
+      "id": "l2",
+      "from": {
+        "kind": "shape",
+        "id": "s_ing"
+      },
+      "to": {
+        "kind": "shape",
+        "id": "s_dq"
+      },
+      "style": "solid",
+      "arrow": "end",
+      "color": "edge",
+      "label": ""
+    },
+    {
+      "id": "l3",
+      "from": {
+        "kind": "shape",
+        "id": "s_dq"
+      },
+      "to": {
+        "kind": "shape",
+        "id": "s_pub"
+      },
+      "style": "solid",
+      "arrow": "end",
+      "color": "ok",
+      "label": "sim"
+    },
+    {
+      "id": "l4",
+      "from": {
+        "kind": "shape",
+        "id": "s_pub"
+      },
+      "to": {
+        "kind": "shape",
+        "id": "s_bi"
+      },
+      "style": "solid",
+      "arrow": "end",
+      "color": "edge",
+      "label": ""
+    }
+  ]
+}

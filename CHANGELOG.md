@@ -1,5 +1,26 @@
 # Histórico de versões
 
+## [2.0.0] - 2026-11-23
+
+Instalação com um comando e ferramenta gerada automaticamente no Claude e no Codex.
+
+### Adicionado
+- Instaladores `install.ps1` (Windows) e `install.sh` (macOS/Linux): instalam a skill em `~/.claude/skills`, `~/.codex/skills` e `~/.agents/skills` e geram a ferramenta pronta em `~/DataModeling/data-modeling.html`. Desinstaladores correspondentes.
+- Skill `data-modeling` reescrita para publicar o artefato no Claude (com `db`, `user`, `room` e `downloads`), abrir no navegador pelo Codex e entregar modelos já desenhados. `agents/openai.yaml` para o Codex.
+- Exemplo fictício **Loja Aurora** (11 tabelas bronze/silver/gold, 6 junções, áreas, notas, fluxo e dois alertas didáticos), embutido no app e disponível em `examples/loja-aurora.json`.
+- Botão **Carregar exemplo** no board vazio e no painel do board.
+- Modo local agora salva o board no navegador (antes não salvava nada).
+- `window.DATA_MODELING_BOARD` para abrir o app com um modelo pronto.
+- Plugin do Claude Code (`.claude-plugin/`), CI com validação, teste de fumaça no navegador e instalação em Windows/macOS/Linux, workflow de release.
+- README completo com capturas de tela, casos de uso, atalhos e guia de instalação.
+
+### Alterado
+- Nova fonte única `src/data-modeling.html` + `scripts/build.py`; a skill passou de `skill/data-modeling/` para `skills/data-modeling/`.
+- Catálogo de exemplo passou a ser o fictício `aurora_dev`.
+
+### Removido
+- `skill/data-modeling/Scripts/install.py` e os testes antigos (substituídos pelos instaladores e por `tests/validate_repo.py` e `tests/test_smoke.py`).
+
 ## 1.0.5
 - Reescrita da apresentação e da documentação para usar uma linguagem mais natural, direta e fácil de acompanhar.
 - Incluídas representações visuais do quadro, do fluxo de trabalho e da escolha de exportação.
@@ -21,7 +42,7 @@
 ## 1.0.1 — correção da aplicação-fonte
 - Adotada como base a aplicação HTML original enviada pelo usuário, preservando seu comportamento.
 - Preservadas as capacidades existentes da aplicação original.
-- Ajustada a identidade visual para Data Modeling e removido o catálogo `martech_dev` dos defaults.
+- Ajustada a identidade visual para Data Modeling e removido o catálogo interno dos defaults.
 - Reescrita a documentação para distinguir funcionalidades existentes de itens futuros.
 - Atualizados exemplos para o formato JSON interno `schema-board`, mantido por compatibilidade, e dados fictícios.
 

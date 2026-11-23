@@ -8,6 +8,8 @@ O aplicativo abre no navegador e apresenta um quadro de modelagem. Nesse quadro,
 
 A aplicação principal está em `app/index.html`. É um arquivo que reúne a interface, os estilos e o código JavaScript responsável pelo comportamento.
 
+Esse arquivo é **gerado**: a fonte é `src/data-modeling.html` e o exemplo vem de `examples/loja-aurora.json`. O script `scripts/build.py` junta os dois e produz `app/index.html`, a cópia usada pela skill (`skills/data-modeling/assets/data-modeling.html`) e o fragmento publicado como artefato no Claude (`data-modeling-artifact.html`). Detalhes em [DESENVOLVIMENTO.md](DESENVOLVIMENTO.md).
+
 ```mermaid
 flowchart TD
     U["Pessoa usando o Data Modeling"] --> B["Quadro visual no navegador"]
@@ -63,13 +65,19 @@ flowchart TD
     B -->|"Sim"| C["Modo integrado"]
     B -->|"Não"| D["Modo local no navegador"]
     C --> E["O host pode oferecer banco, usuário, sala, presença, sincronização e downloads"]
-    D --> F["O quadro funciona localmente em memória"]
-    F --> G["Exporte o JSON para guardar uma cópia"]
+    D --> F["Abre com o exemplo fictício Loja Aurora"]
+    F --> G["Salva o board no localStorage deste navegador"]
+    G --> H["Exporte o JSON para guardar uma cópia fora do navegador"]
 ```
 
 ### Modo local
 
-Quando o arquivo é aberto diretamente em um navegador sem o ambiente hospedeiro, o quadro funciona em modo local. Não há armazenamento compartilhado nem garantia de salvamento automático. Para não perder o trabalho, exporte o JSON e guarde o arquivo.
+Quando o arquivo é aberto diretamente em um navegador sem o ambiente hospedeiro (Codex, terminal, duplo clique no HTML), o quadro funciona em modo local:
+
+- Na primeira abertura aparece o exemplo fictício **Loja Aurora**, embutido no HTML no momento do build (`examples/loja-aurora.json`).
+- Cada alteração é salva no `localStorage` do navegador, na chave `data-modeling:local:v1`. Fechar e abrir de novo mantém o board.
+- Se a página receber um modelo pronto em `window.DATA_MODELING_BOARD`, ele é usado na primeira abertura e salvo numa chave própria, sem misturar com o board padrão.
+- Não há colaboração nem compartilhamento: o board existe só naquele navegador. Para guardar uma cópia ou levar para outro lugar, use **Exportar → JSON**.
 
 ### Modo integrado
 
