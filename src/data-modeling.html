@@ -1,4 +1,3 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <title>Data Modeling — modelagem de dados</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <script>document.documentElement.setAttribute('data-theme','dark');</script>
@@ -343,7 +342,7 @@ textarea.inp{height:auto;min-height:56px;padding:7px 9px;resize:vertical;line-he
   <header id="topbar">
     <div class="brand">
       <svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><rect x="1" y="2" width="9" height="7" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="12" y="13" width="9" height="7" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M10 5.5h3.5v11H12" fill="none" stroke="var(--hot)" stroke-width="1.6"/></svg>
-      Data Modeling <small>Data Modeling · modelagem de dados</small>
+      Data Modeling <small>modelagem de dados</small>
     </div>
     <div class="boardpick">
       <button class="btn" id="boardBtn" aria-haspopup="true"><span id="boardName">Carregando…</span><svg width="10" height="10" viewBox="0 0 10 10"><path d="M2 3.5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></button>
@@ -485,7 +484,7 @@ const cpath = kind => kind === 'boards' ? ROOT : `${ROOT}/${S.boardId}/${kind}`;
 const dpath = (kind, id) => `${cpath(kind)}/${id}`;
 
 function enqueue(path, w, delay = 0) {
-  if (!S.db) return;
+  if (!S.db) { localSave(); return; }
   let q = Q.get(path);
   if (!q) { q = { op: null, data: null, timer: null, busy: false }; Q.set(path, q); }
   if (w.del) { q.op = 'del'; q.data = null; }
@@ -528,7 +527,7 @@ function writeError(e, path) {
 }
 function setSync(state) {
   const el = $('#sync');
-  if (S.mode === 'local') { el.className = 'local'; el.lastElementChild.textContent = 'Modo local (não salva)'; return; }
+  if (S.mode === 'local') { el.className = 'local'; el.lastElementChild.textContent = 'Salvo no navegador'; return; }
   if (!S.canWrite) { el.className = 'saved'; el.lastElementChild.textContent = 'Somente leitura'; return; }
   el.className = state;
   el.lastElementChild.textContent = state === 'saving' ? 'Salvando…' : state === 'err' ? 'Erro ao salvar' : 'Tudo salvo';
@@ -593,6 +592,41 @@ function deleteItem(kind, id) {
   scheduleRender(true);
 }
 
+// ---------- modo local: exemplo fictício + salvamento no navegador ----------
+const LOCAL_KEY = 'data-modeling:local:v1';
+const DEMO_BOARD = /*@@DEMO_BOARD@@*/null;
+let localSaveT = null;
+function localKey() { const J = window.DATA_MODELING_BOARD; return J && J.board && J.board.name ? LOCAL_KEY + ':' + slug(J.board.name) : LOCAL_KEY; }
+function localSnapshot() {
+  const b = S.boards.get(S.boardId) || {};
+  const o = { format: 'schema-board', version: 1, board: { name: b.name, catalog: b.catalog } };
+  KINDS.forEach(k => { o[k] = [...S[k].entries()].map(([id, v]) => ({ id, ...v })); });
+  return o;
+}
+function localSave() {
+  if (S.mode !== 'local') return;
+  clearTimeout(localSaveT);
+  localSaveT = setTimeout(() => { try { localStorage.setItem(localKey(), JSON.stringify(localSnapshot())); } catch {} }, 300);
+}
+function loadSnapshot(J) {
+  if (!J || typeof J !== 'object' || !Array.isArray(J.tables)) return false;
+  const b = S.boards.get(S.boardId);
+  if (b && J.board) { if (J.board.name) b.name = J.board.name; if (J.board.catalog != null) b.catalog = J.board.catalog; }
+  KINDS.forEach(k => { const m = new Map(); (J[k] || []).forEach(o => { if (!o || typeof o !== 'object') return; const { id, ...rest } = o; m.set(id || rid(k[0]), rest); }); S[k] = m; });
+  S.fitDone = false;
+  return true;
+}
+function loadDemo() {
+  if (!S.canWrite || !DEMO_BOARD) return;
+  if (S.mode === 'local') {
+    const has = S.tables.size || S.notes.size || S.frames.size || S.texts.size || S.shapes.size;
+    if (has && !confirm('Trocar o conteúdo deste board pelo exemplo Loja Aurora?')) return;
+    H.undo = []; H.redo = []; H.cur = null; updHistBtns();
+    loadSnapshot(clone(DEMO_BOARD)); localSave(); select(null); renderBoardMenu(); scheduleRender(true);
+    toast('Exemplo Loja Aurora carregado.');
+  } else importJSON(JSON.stringify(DEMO_BOARD));
+}
+
 // ---------- boot ----------
 async function boot() {
   wireUI();
@@ -619,9 +653,11 @@ async function boot() {
 }
 function goLocal() {
   S.mode = 'local'; S.boardsLoaded = true;
-  S.boards = new Map([['local', { name: 'Board local', catalog: 'demo_catalog', createdAt: Date.now() }]]);
+  S.boards = new Map([['local', { name: 'Board local', catalog: 'aurora_dev', createdAt: Date.now() }]]);
   S.boardId = 'local'; KINDS.forEach(k => S.loaded.add(k));
-  setSync(); banner('Modo local: este visualizador não tem armazenamento compartilhado, então nada será salvo.');
+  let saved = null; try { saved = JSON.parse(localStorage.getItem(localKey()) || 'null'); } catch {}
+  loadSnapshot(saved) || loadSnapshot(clone(window.DATA_MODELING_BOARD || null)) || loadSnapshot(clone(DEMO_BOARD));
+  setSync(); banner('Modo local: o board fica salvo só neste navegador. Para guardar uma cópia ou levar para outro lugar, use Exportar → JSON.');
   renderBoardMenu(); scheduleRender(true);
 }
 function applyWriteMode() {
@@ -935,13 +971,13 @@ function renderEmpty() {
   if (!S.boardsLoaded) { el.hidden = false; el.innerHTML = `<h3>Conectando ao board…</h3><p>Carregando tabelas e relacionamentos compartilhados.</p>`; return; }
   if (!S.boardId) {
     el.hidden = false;
-    el.innerHTML = `<h3>Crie o primeiro board de modelagem</h3><p>Um board reúne as tabelas, colunas e junções de um domínio — por exemplo “Leads unificados” ou “Atendimento”. Todo mundo com acesso vê e edita ao mesmo tempo.</p>${S.canWrite ? '<button class="btn primary" data-act="new-board">Novo board</button>' : ''}`;
+    el.innerHTML = `<h3>Crie o primeiro board de modelagem</h3><p>Um board reúne as tabelas, colunas e junções de um domínio — por exemplo “Vendas online” ou “Atendimento”. Todo mundo com acesso vê e edita ao mesmo tempo.</p>${S.canWrite ? '<button class="btn primary" data-act="new-board">Novo board</button>' : ''}`;
     return;
   }
   const ready = KINDS.every(k => S.loaded.has(k));
   if (ready && !S.tables.size && !S.notes.size && !S.frames.size && !S.texts.size && !S.shapes.size) {
     el.hidden = false;
-    el.innerHTML = `<h3>Board vazio</h3><p>Use <span class="kbd">T</span> e clique no canvas para criar uma tabela, ou importe um <code class="kbd">CREATE TABLE</code> existente. Para ligar tabelas, arraste a bolinha ao lado de uma coluna até a coluna de destino.</p>${S.canWrite ? '<div class="actions"><button class="btn primary" data-act="tool-table">Nova tabela</button><button class="btn" data-act="import">Importar DDL</button></div>' : ''}`;
+    el.innerHTML = `<h3>Board vazio</h3><p>Use <span class="kbd">T</span> e clique no canvas para criar uma tabela, ou importe um <code class="kbd">CREATE TABLE</code> existente. Para ligar tabelas, arraste a bolinha ao lado de uma coluna até a coluna de destino.</p>${S.canWrite ? '<div class="actions"><button class="btn primary" data-act="tool-table">Nova tabela</button><button class="btn" data-act="import">Importar DDL</button>' + (DEMO_BOARD ? '<button class="btn" data-act="load-demo">Carregar exemplo</button>' : '') + '</div>' : ''}`;
   } else el.hidden = true;
 }
 
@@ -1018,7 +1054,7 @@ function insBoard(el, dis) {
   <div class="ins-body">
     <div class="stats"><div><b>${S.tables.size}</b><span>tabelas</span></div><div><b>${ncols}</b><span>colunas</span></div><div><b>${S.rels.size}</b><span>junções</span></div></div>
     <label class="fld"><span>Nome do board</span><input class="inp" id="b-name" data-bf="name" value="${esc(b.name)}" ${dis}></label>
-    <label class="fld"><span>Catálogo padrão (Unity Catalog)</span><input class="inp mono" id="b-cat" data-bf="catalog" value="${esc(b.catalog || '')}" placeholder="ex.: demo_catalog" ${dis}></label>
+    <label class="fld"><span>Catálogo padrão (Unity Catalog)</span><input class="inp mono" id="b-cat" data-bf="catalog" value="${esc(b.catalog || '')}" placeholder="ex.: aurora_dev" ${dis}></label>
     <div class="sec-title">Camadas</div>
     <div class="legend">${Object.values(LAYERS).map(l => `<div><i style="background:${l.color}"></i>${esc(l.label)}</div>`).join('')}</div>
     <div class="sec-title">Status</div>
@@ -1030,8 +1066,9 @@ function insBoard(el, dis) {
       <p style="margin:0 0 6px"><b>Copiar e colar:</b> <span class="kbd">Ctrl+C</span> / <span class="kbd">Ctrl+V</span> funcionam entre boards. Colar um <code>CREATE TABLE</code> no canvas importa as tabelas.</p>
       <p style="margin:0 0 6px"><b>Junção:</b> passe o mouse numa tabela e arraste a bolinha de uma coluna até a coluna de destino. Soltar sobre o cabeçalho de outra tabela cria a FK <code>id_&lt;tabela&gt;</code> automaticamente.</p>
       <p style="margin:0 0 6px"><b>Canvas:</b> arraste o fundo para mover, roda do mouse para zoom. <span class="kbd">Del</span> apaga, <span class="kbd">Ctrl+D</span> duplica.</p>
-      <p style="margin:0">Tudo é salvo e sincronizado com quem estiver no board.</p>
+      <p style="margin:0">${S.mode === 'local' ? 'Modo local: o board fica salvo neste navegador. Use Exportar → JSON para guardar uma cópia.' : 'Tudo é salvo e sincronizado com quem estiver no board.'}</p>
     </div>
+    ${S.canWrite && DEMO_BOARD ? '<div class="sec-title">Exemplo</div><div class="actions"><button class="btn sm" data-act="load-demo">Carregar exemplo Loja Aurora</button></div>' : ''}
     ${S.canWrite && S.mode === 'remote' ? `<div class="sec-title">Zona de perigo</div><div class="actions"><button class="btn sm danger" data-act="del-board">Excluir este board</button></div>` : ''}
   </div>`;
 }
@@ -1048,7 +1085,7 @@ function insTable(el, dis) {
     <label class="fld"><span>Descrição</span><textarea class="inp" id="t-desc" data-tf="desc" rows="2" ${dis}>${esc(t.desc || '')}</textarea></label>
     <label class="fld"><span>Status da tabela</span><select class="inp" id="t-st" data-tf="st" ${dis}><option value="" ${!t.st ? 'selected' : ''}>OK</option><option value="val" ${t.st === 'val' ? 'selected' : ''}>Em validação</option><option value="noaccess" ${t.st === 'noaccess' ? 'selected' : ''}>Sem acesso à tabela</option></select></label>
     <div class="sec-title"><span>Colunas (${cols.length})</span>${S.canWrite ? '<span class="actions"><button class="btn sm" data-act="bulk">Colar lista</button><button class="btn sm primary" data-act="add-col">+ Coluna</button></span>' : ''}</div>
-    <div id="bulkBox" hidden><textarea class="inp mono" id="bulkTxt" rows="5" placeholder="Uma coluna por linha: nome tipo descrição&#10;id_lead string Identificador do lead&#10;dt_criacao timestamp Data de criação"></textarea><div class="actions" style="margin-top:6px"><button class="btn sm primary" data-act="bulk-apply">Adicionar colunas</button></div></div>
+    <div id="bulkBox" hidden><textarea class="inp mono" id="bulkTxt" rows="5" placeholder="Uma coluna por linha: nome tipo descrição&#10;id_cliente bigint Identificador do cliente&#10;dt_cadastro timestamp Data de cadastro"></textarea><div class="actions" style="margin-top:6px"><button class="btn sm primary" data-act="bulk-apply">Adicionar colunas</button></div></div>
     <div class="cols">${cols.map((c, i) => `<div class="colc" data-ci="${i}">
       <div class="l1"><input class="inp mono" id="c-n-${esc(c.id)}" data-cf="name" value="${esc(c.name)}" placeholder="nome_coluna" ${dis}><input class="inp mono" id="c-t-${esc(c.id)}" data-cf="type" list="typeList" value="${esc(c.type || 'string')}" ${dis}>
         <span class="actions" style="flex-wrap:nowrap"><button class="tg pk ${c.pk ? 'on' : ''}" data-tog="pk" title="Chave primária" ${dis}>PK</button><button class="tg fk ${c.fk ? 'on' : ''}" data-tog="fk" title="Chave estrangeira" ${dis}>FK</button><button class="tg nn ${c.nn ? 'on' : ''}" data-tog="nn" title="NOT NULL" ${dis}>NN</button></span></div>
@@ -1452,6 +1489,7 @@ function onInsInput(e) {
 }
 function onInsClick(e) {
   const b = e.target.closest('button'); if (!b) return;
+  if (b.dataset.act === 'load-demo') { loadDemo(); return; }
   const id0 = S.sel?.id;
   if (b.dataset.arr) {
     const a = b.dataset.arr;
@@ -1536,7 +1574,7 @@ function newBoard() {
   if (!S.canWrite || S.mode !== 'remote') return;
   let n = 1, name = 'Novo board'; const names = new Set([...S.boards.values()].map(b => b.name)); while (names.has(name)) name = 'Novo board ' + (++n);
   const id = rid('b');
-  const data = { name, catalog: S.boards.get(S.boardId)?.catalog || 'demo_catalog', createdAt: Date.now() };
+  const data = { name, catalog: S.boards.get(S.boardId)?.catalog || 'aurora_dev', createdAt: Date.now() };
   S.boards.set(id, data); enqueue(ROOT + '/' + id, { set: data });
   switchBoard(id); renderBoardMenu(); S.insOpen = true; select(null); focusSoon('#b-name');
 }
@@ -1703,9 +1741,9 @@ function importJSON(src) {
 let importTab = 'ddl';
 function openImport() {
   if (!S.canWrite) return;
-  const ph = importTab === 'ddl' ? "CREATE TABLE demo_catalog.silver.tb_lead (\n  id_lead STRING NOT NULL COMMENT 'Identificador do lead',\n  dt_criacao TIMESTAMP,\n  CONSTRAINT pk_tb_lead PRIMARY KEY (id_lead)\n) USING DELTA;" : '{ "format": "schema-board", "tables": [ ... ] }';
+  const ph = importTab === 'ddl' ? "CREATE TABLE aurora_dev.silver.tb_cliente (\n  id_cliente BIGINT NOT NULL COMMENT 'Identificador do cliente',\n  dt_cadastro TIMESTAMP,\n  CONSTRAINT pk_tb_cliente PRIMARY KEY (id_cliente)\n) USING DELTA;" : '{ "format": "schema-board", "tables": [ ... ] }';
   modal(`<div class="modal" role="dialog" aria-label="Importar"><header><h3>Importar para este board</h3><button class="ib" data-close>✕</button></header>
-    <div class="tabs"><button data-itab="ddl" class="${importTab === 'ddl' ? 'on' : ''}">SQL DDL</button><button data-itab="json" class="${importTab === 'json' ? 'on' : ''}">JSON do Schema Board</button></div>
+    <div class="tabs"><button data-itab="ddl" class="${importTab === 'ddl' ? 'on' : ''}">SQL DDL</button><button data-itab="json" class="${importTab === 'json' ? 'on' : ''}">JSON do Data Modeling</button></div>
     <div class="mb"><p class="hint" style="margin:0">${importTab === 'ddl' ? 'Cole um ou mais <code>CREATE TABLE</code> (Databricks, Spark SQL, Oracle ou Postgres). Colunas, tipos, COMMENT, NOT NULL, PRIMARY KEY e FOREIGN KEY viram tabelas e junções no canvas.' : 'Cole um JSON exportado de outro board. As tabelas entram como cópias com novos IDs.'}</p>
     <textarea class="code" id="icode" spellcheck="false" placeholder="${esc(ph)}"></textarea></div>
     <footer><button class="btn" data-close>Cancelar</button><button class="btn primary" data-iok>Importar</button></footer></div>`, root => {
@@ -1762,7 +1800,7 @@ function wireUI() {
     const ta = e.target.closest('.note textarea'); if (!ta) return;
     if (!ta.closest('.note').classList.contains('sized')) autosize(ta); patchItem('notes', ta.closest('.note').dataset.id, { text: ta.value }, 500);
   });
-  $('#empty').addEventListener('click', e => { const a = e.target.closest('[data-act]')?.dataset.act; if (a === 'new-board') newBoard(); if (a === 'tool-table') setTool('table'); if (a === 'import') openImport(); });
+  $('#empty').addEventListener('click', e => { const a = e.target.closest('[data-act]')?.dataset.act; if (a === 'new-board') newBoard(); if (a === 'tool-table') setTool('table'); if (a === 'import') openImport(); if (a === 'load-demo') loadDemo(); });
   $('#empty').addEventListener('pointerdown', e => e.stopPropagation());
   document.querySelectorAll('#tools [data-tool]').forEach(b => { if (b.dataset.tool !== 'shape') b.addEventListener('click', () => setTool(b.dataset.tool)); });
   $('#compactBtn').addEventListener('click', () => { S.compact = !S.compact; $('#compactBtn').classList.toggle('on', S.compact); try { localStorage.setItem('sb-compact', S.compact ? '1' : ''); } catch {} scheduleRender(); });
@@ -2425,7 +2463,7 @@ function renderLock() {
   const el = $('#lock'); el.hidden = !lockState; if (!lockState) return;
   const card = (t, p, extra = '') => `<div class="lock-card"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg><h3>${t}</h3><p>${p}</p>${extra}</div>`;
   const sent = ACC.myReq?.at || ACC.reqSent;
-  if (lockState === 'loading') el.innerHTML = card('Verificando seu acesso…', 'Os projetos do Data Modeling são protegidos. Só quem o proprietário aprovou consegue ver o conteúdo.');
+  if (lockState === 'loading') el.innerHTML = card('Verificando seu acesso…', 'Os projetos deste Data Modeling são protegidos. Só quem o proprietário aprovou consegue ver o conteúdo.');
   else if (lockState === 'noid') el.innerHTML = card('Entre na sua conta', 'Para pedir acesso aos projetos você precisa estar conectado com a sua conta.');
   else if (lockState === 'nocrypto') el.innerHTML = card('Navegador sem suporte', 'Este navegador não conseguiu criar as chaves de segurança. Tente pelo app do Claude ou por um navegador atualizado.');
   else if (lockState === 'ownerlost') el.innerHTML = card('Chave do proprietário não encontrada', 'Não foi possível recuperar a chave de criptografia nesta conta. Abra a ferramenta no navegador onde ela foi usada pela primeira vez.');
@@ -2468,5 +2506,3 @@ function renderAccess(skipNames) {
 boot();
 })();
 </script>
-
-</body></html>

@@ -155,7 +155,7 @@ EXPORTAÇÃO
 
 ## 10. Cuide do arquivo do seu modelo
 
-Quando o aplicativo é aberto diretamente no navegador, sem o ambiente hospedeiro compatível, o quadro funciona em memória e não tem salvamento automático garantido. Nesse caso, exporte o JSON sempre que quiser guardar uma versão do trabalho.
+Quando o aplicativo é aberto diretamente no navegador (modo local), o board fica salvo só naquele navegador. Limpar os dados do navegador ou trocar de computador apaga o trabalho. Exporte o JSON sempre que quiser guardar uma versão. No artefato do Claude, os boards ficam guardados na sua conta.
 
 Antes de compartilhar esse arquivo, confira se ele não contém nomes internos, informações pessoais, regras confidenciais ou detalhes da arquitetura da empresa.
 

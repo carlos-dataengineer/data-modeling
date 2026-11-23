@@ -13,13 +13,15 @@ Este documento separa os recursos que já existem das ideias que ainda quero des
 - [x] Exportação SQL DDL Databricks/Delta, PySpark `StructType`, Mermaid ER e JSON.
 - [x] Skill para orientar um agente de IA a instalar e usar a ferramenta.
 - [x] Documentação de uso, arquitetura, privacidade e limites.
+- [x] Instalação com um comando para Claude Code e Codex (v2.0.0).
+- [x] Salvamento local no navegador e exemplo fictício Loja Aurora embutido (v2.0.0).
+- [x] Referência visual dos controles e atalhos no README (v2.0.0).
+- [x] Teste de fumaça no navegador e validação do repositório no CI (v2.0.0).
 
 ## Melhorias que quero avaliar
 
-- [ ] Melhorar a persistência local para que o trabalho possa ser guardado com mais facilidade.
 - [ ] Ampliar os testes de importação, exportação e validação.
 - [ ] Melhorar a acessibilidade e a experiência em telas menores.
-- [ ] Criar uma referência visual dos controles e atalhos.
 
 ## Ideias para trabalhar com JOINs e transformações
 

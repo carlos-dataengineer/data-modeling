@@ -5,6 +5,7 @@ type: software
 authors:
   - given-names: "Krlos"
     family-names: "Robertt"
-version: 1.0.5
-date-released: 2026-11-21
+version: 2.0.0
+date-released: 2026-11-23
 license: Apache-2.0
+repository-code: "https://github.com/carlos-dataengineer/data-modeling"

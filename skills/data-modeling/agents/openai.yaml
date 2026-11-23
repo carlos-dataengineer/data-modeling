@@ -1,0 +1,4 @@
+interface:
+  display_name: "Data Modeling"
+  short_description: "Quadro visual para desenhar e documentar modelos de dados"
+  default_prompt: "Abra o Data Modeling e me ajude a desenhar o modelo de dados do meu projeto."
